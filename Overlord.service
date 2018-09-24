@@ -1,0 +1,13 @@
+[Unit]
+Description=rts
+After=network.target
+
+[Service]
+Type=simple
+User=Overlord
+WorkingDirectory=/home/Overlord/Overlord
+ExecStart=python /home/Overlord/Overlord/client.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
