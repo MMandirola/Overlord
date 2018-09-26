@@ -2,29 +2,21 @@
 from time import gmtime, strftime, sleep
 
 # Return base64 encoded file
-def fileToBase64():
+def file_to_base64():
     return ""
 
-'''
-Post request to http://127.0.0.1:8000/api/replays/
-Raw content example:
-    {
-        "title": "prueba1",
-        "base64_file": "fdfsf",
-        "extra": "fdf"
-    }
-'''
-def sendReplay():
+# Send replay to an Overmind
+def send_replay():
     pass
 
 # Write text on log file
-def writeLog(text):
-    logFile = open("Overlord.log", "a")
-    logFile.write("[%s] - %s\n" % (strftime("%Y-%m-%d %H:%M:%S", gmtime()), mensaje))
-    logFile.close()
+def write_log(text):
+    log_file = open("Overlord.log", "a")
+    log_file.write("[%s] - %s\n" % (strftime("%Y-%m-%d %H:%M:%S", gmtime()), text))
+    log_file.close()
 
 # Write start log
-writeLog("Overlord started")
+write_log("Overlord started")
 
 # Log here
 while True:
