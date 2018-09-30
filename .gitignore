@@ -1,0 +1,11 @@
+# Log files
+*.log
+
+# Replay files
+*.SC2Replay
+
+# Compiled python files
+*.pyc
+
+# Local settings
+local_settings.py
