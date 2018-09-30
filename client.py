@@ -22,12 +22,11 @@ class Overlord:
         body = {'title': replay_title, 'base64_file': base64_encoded_text, 'extra': extra_text}
 
         # Send replay (HTTP post with exp. regression)
-        sent = False
         delay = 1
-        while (not sent):
+        while (delay > 0):
             try:
                 request = requests.post(self.replays_url, json=body)
-                sent = True
+                delay = 0
             except Exception as e:
                 sleep(math.exp(delay))
                 delay += 1
