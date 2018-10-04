@@ -11,8 +11,9 @@ except ImportError:
 class Overlord:
 
     # Main constructor
-    def __init__(self, replays_url):
+    def __init__(self, replays_url, max_delay):
         self.replays_url = replays_url
+        self.max_delay = max_delay
         self.log_file = "Overlord.log"
 
     # Send replay to an Overmind
@@ -22,14 +23,18 @@ class Overlord:
         body = {'title': replay_title, 'base64_file': base64_encoded_text, 'extra': extra_text}
 
         # Send replay (HTTP post with exp. regression)
-        delay = 1
-        while (delay > 0):
+        power = 1
+        while (power > 0):
             try:
                 request = requests.post(self.replays_url, json=body)
-                delay = 0
+                power = 0
             except Exception as e:
-                sleep(math.exp(delay))
-                delay += 1
+                delay = 2**power
+                if delay > self.max_delay:
+                    sleep(self.max_delay)
+                else:
+                    sleep(delay)
+                    power += 1
 
         # Return HTTP status code
         return request.status_code
