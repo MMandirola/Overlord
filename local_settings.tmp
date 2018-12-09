@@ -1,2 +1,10 @@
 REPLAYS_URL = "http://127.0.0.1:8000/api/replays/"
 MAX_DELAY = 1024
+REPLAYS_URL = "http://127.0.0.1:8000/api/replays/"
+MAX_DELAY = 1024
+SERVER_ROUTE = "/home/sc2/dev/StarCraftII"
+SERVER_ADDRESS = "127.0.0.1"
+REPLAY_ROUTE = "/home/sc2/dev/StarCraftII/Replays/"
+DATABASE_NAME = "mongo"
+DATABASE_ROUTE = "localhost"
+DATABASE_PORT = 27017

@@ -3,6 +3,8 @@ import base64
 import math
 import requests
 from time import gmtime, strftime, sleep
+from sc2_wrapper import client
+
 try:
     from local_settings import *
 except ImportError:
@@ -65,6 +67,10 @@ class Overlord:
         replay_file.close()
         
         return True
+    
+    def process_replay(self):
+        
+        pass
 
 def main():
 
