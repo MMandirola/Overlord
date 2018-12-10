@@ -3,12 +3,17 @@ import base64
 import math
 import requests
 from time import gmtime, strftime, sleep
-from sc2_wrapper import client
+from sc2_wrapper import client as game
+import uuid
+import asyncio
+import json
+import os
 
 try:
     from local_settings import *
 except ImportError:
     pass
+
 
 class Overlord:
 
@@ -22,7 +27,8 @@ class Overlord:
     def send_replay(self, replay_title, base64_encoded_text, extra_text):
 
         # Build JSON body
-        body = {'title': replay_title, 'base64_file': base64_encoded_text, 'extra': extra_text}
+        body = {'title': replay_title,
+                'base64_file': base64_encoded_text, 'extra': extra_text}
 
         # Send replay (HTTP post with exp. regression)
         power = 1
@@ -44,7 +50,8 @@ class Overlord:
     # Write text on log file
     def write_log(self, text):
         log_file = open(self.log_file, "a")
-        log_file.write("[%s] - %s\n" % (strftime("%Y-%m-%d %H:%M:%S", gmtime()), text))
+        log_file.write("[%s] - %s\n" %
+                       (strftime("%Y-%m-%d %H:%M:%S", gmtime()), text))
         log_file.close()
 
     # Return base64 encoded string
@@ -59,29 +66,47 @@ class Overlord:
         return base64.b64encode(file_content)
 
     # Write decode base64 string to a file
-    def base64_to_file(self, base64_encoded_text, file_path):
 
-        # Open encoded file
-        replay_file = open(file_path, "wb")
-        replay_file.write(base64.b64decode(base64_encoded_text))
-        replay_file.close()
-        
-        return True
-    
     def process_replay(self):
-        
+
         pass
+
+
+def base64_to_file(base64_encoded_text, file_path):
+
+    # Open encoded file
+    replay_file = open(file_path, "wb")
+    replay_file.write(base64.b64decode(base64_encoded_text))
+    replay_file.close()
+
+    return True
+
 
 def main():
 
     # Overlord client
-    client = Overlord(REPLAYS_URL)
-
+    client = Overlord(URL, 1024)
     # Write start log
     client.write_log("Overlord started")
+    loop = asyncio.get_event_loop()
 
     while True:
-        sleep(10)
+        if MODE == "CLASSIFY":
+            r = requests.get(URL+"/replays/classify")
+            payload = r.json()
+            id = payload["title"]
+            uuidV = uuid.uuid1()
+            pay = payload["base64"][2:]
+            base64_to_file(pay, REPLAY_ROUTE+str(id))
+            file_path = str(id)
+            meta = loop.run_until_complete(game.classify(
+                REPLAY_ROUTE+str(id)))
+            meta = json.loads(meta)
+            requests.post(
+                URL+"/classify/", {"id": id, "player": meta["races"][0], "opponent": meta["races"][1], "map": meta["map"]})
+            os.remove(REPLAY_ROUTE+str(id))
+    loop.close()
+
 
 if __name__ == "__main__":
     main()
