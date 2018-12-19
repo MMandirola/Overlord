@@ -91,20 +91,23 @@ def main():
     loop = asyncio.get_event_loop()
 
     while True:
-        if MODE == "CLASSIFY":
-            r = requests.get(URL+"/replays/classify")
-            payload = r.json()
-            id = payload["title"]
-            uuidV = uuid.uuid1()
-            pay = payload["base64"][2:]
-            base64_to_file(pay, REPLAY_ROUTE+str(id))
-            file_path = str(id)
-            meta = loop.run_until_complete(game.classify(
-                REPLAY_ROUTE+str(id)))
-            meta = json.loads(meta)
-            requests.post(
-                URL+"/classify/", {"id": id, "player": meta["races"][0], "opponent": meta["races"][1], "map": meta["map"]})
-            os.remove(REPLAY_ROUTE+str(id))
+        try:
+            if MODE == "CLASSIFY":
+                r = requests.get(URL+"/replays/classify")
+                payload = r.json()
+                id = payload["title"]
+                uuidV = uuid.uuid1()
+                pay = payload["base64"][2:]
+                base64_to_file(pay, REPLAY_ROUTE+str(id))
+                file_path = str(id)
+                meta = loop.run_until_complete(game.classify(
+                    REPLAY_ROUTE+str(id)))
+                meta = json.loads(meta)
+                requests.post(
+                    URL+"/classify/", {"id": id, "player": meta["races"][0], "opponent": meta["races"][1], "map": meta["map"]})
+                os.remove(REPLAY_ROUTE+str(id))
+        except Exeption as e:
+            print(e)
     loop.close()
 
 
