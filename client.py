@@ -106,7 +106,7 @@ def main():
                 requests.post(
                     URL+"/classify/", {"id": id, "player": meta["races"][0], "opponent": meta["races"][1], "map": meta["map"]})
                 os.remove(REPLAY_ROUTE+str(id))
-        except Exeption as e:
+        except Exception as e:
             print(e)
     loop.close()
 
