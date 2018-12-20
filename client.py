@@ -111,7 +111,7 @@ def main():
                 else:
                     time.sleep(5)
             subprocess.call(
-                ["sudo", "killall", "-9", "/home/sc2/dev/StarCraftII/Versions/Base55958/SC2_x64"])
+                ["sudo", "killall", "-9", "/home/rts/StarCraftII/Versions/Base55958/SC2_x64"])
         except Exception as e:
             print(e)
     loop.close()
