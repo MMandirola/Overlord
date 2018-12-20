@@ -8,7 +8,8 @@ import uuid
 import asyncio
 import json
 import os
-
+import subprocess
+import time
 try:
     from local_settings import *
 except ImportError:
@@ -94,18 +95,23 @@ def main():
         try:
             if MODE == "CLASSIFY":
                 r = requests.get(URL+"/replays/classify")
-                payload = r.json()
-                id = payload["title"]
-                uuidV = uuid.uuid1()
-                pay = payload["base64"][2:]
-                base64_to_file(pay, REPLAY_ROUTE+str(id))
-                file_path = str(id)
-                meta = loop.run_until_complete(game.classify(
-                    REPLAY_ROUTE+str(id)))
-                meta = json.loads(meta)
-                requests.post(
-                    URL+"/classify/", {"id": id, "player": meta["races"][0], "opponent": meta["races"][1], "map": meta["map"]})
-                os.remove(REPLAY_ROUTE+str(id))
+                if r.status_code == 200:
+                    payload = r.json()
+                    id = payload["title"]
+                    uuidV = uuid.uuid1()
+                    pay = payload["base64"][2:]
+                    base64_to_file(pay, REPLAY_ROUTE+str(id))
+                    file_path = str(id)
+                    meta = loop.run_until_complete(game.classify(
+                        REPLAY_ROUTE+str(id)))
+                    meta = json.loads(meta)
+                    requests.post(
+                        URL+"/classify/", {"id": id, "player": meta["races"][0], "opponent": meta["races"][1], "map": meta["map"]})
+                    os.remove(REPLAY_ROUTE+str(id))
+                else:
+                    time.sleep(5)
+            subprocess.call(
+                ["sudo", "killall", "-9", "/home/sc2/dev/StarCraftII/Versions/Base55958/SC2_x64"])
         except Exception as e:
             print(e)
     loop.close()
