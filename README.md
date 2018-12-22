@@ -2,7 +2,7 @@
 
 ## Installation
 ### Arch-linux
-* Create user `Overlord`
-* Clone this repo into `/home/Overlord/`
+* Create user `rts`
+* Clone this repo into `/home/rts/`
 * Copy `Overlord.service` into `/etc/systemd/system/`
 * Start and enable Overlord service: `sudo systemctl start Overlord && sudo systemctl enable Overlord`
