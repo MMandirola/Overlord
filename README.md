@@ -16,7 +16,7 @@
 * pip install -r requirements.txt
 * Create a local_setting.py into the same folder as client.py with this settings
 
-`URL = "dumbbots.ddns.net"
+URL = "dumbbots.ddns.net"
 
 MAX_DELAY = 1024
 
@@ -32,6 +32,6 @@ DATABASE_ROUTE = "localhost"
 
 DATABASE_PORT = 27017
 
-MODE = "CLASSIFY"`
+MODE = "CLASSIFY"
 
 * sudo python3 client.py
