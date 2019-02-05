@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import time
+from sys import getsizeof
 try:
     from local_settings import *
 except ImportError:
@@ -83,39 +84,65 @@ def base64_to_file(base64_encoded_text, file_path):
     return True
 
 
-def main():
+async def main():
 
     # Overlord client
     client = Overlord(URL, 1024)
     # Write start log
     client.write_log("Overlord started")
-    loop = asyncio.get_event_loop()
+
 
     while True:
         try:
-            if MODE == "CLASSIFY":
+            r = requests.get(URL+"/mode")
+            payload = r.json()
+            payload = payload[0]
+            print(payload)
+            if payload["fields"]["title"] == "CLASSIFY":
                 r = requests.get(URL+"/replays/classify")
-                if r.status_code == 200:
-                    payload = r.json()
-                    id = payload["title"]
-                    uuidV = uuid.uuid1()
-                    pay = payload["base64"][2:]
-                    base64_to_file(pay, REPLAY_ROUTE+str(id))
-                    file_path = str(id)
-                    meta = loop.run_until_complete(game.classify(
-                        REPLAY_ROUTE+str(id)))
-                    meta = json.loads(meta)
-                    requests.post(
-                        URL+"/classify/", {"id": id, "player": meta["races"][0], "opponent": meta["races"][1], "map": meta["map"]})
-                    os.remove(REPLAY_ROUTE+str(id))
-                else:
-                    time.sleep(5)
+                payload = r.json()
+                id = payload["title"]
+                pay = payload["base64"][2:]
+                base64_to_file(pay, REPLAY_ROUTE+str(id))
+                file_path = str(id)
+                meta = await game.classify(
+                    REPLAY_ROUTE+str(id))
+                meta = json.loads(meta)
+                requests.post(
+                    URL+"/classify/", {"id": id, "player": meta["races"][0], "opponent": meta["races"][1], "map": meta["map"]})
+                os.remove(REPLAY_ROUTE+str(id))
+            if payload["fields"]["title"] == "UPDATE":
+                subprocess.call(["git", "pull"])
+                subprocess.call(["pip3", "install", "-r", "requirements.txt", "--force-reinstall", "--no-cache-dir"])
+            if payload["fields"]["title"] == "PROCESS":
+                path = "/replays?"
+                if payload["fields"]["map"]:
+                    path += "map=" + payload["fields"]["map"] + "&"
+                if payload["fields"]["player"]:
+                    path += "player=" + payload["fields"]["player"] + "&"
+                if payload["fields"]["oponent"]:
+                    path += "oponent=" + payload["fields"]["oponent"] + "&"
+                r = requests.get(URL+path)
+                payload = r.json()
+                id = payload["title"]
+                pay = payload["base64"][2:]
+                base64_to_file(pay, REPLAY_ROUTE+str(id))
+                file_path = str(id)
+                observations = []
+                async for obs in game.load_replay(REPLAY_ROUTE+str(id)):
+                    observations.append(obs)
+                observations = json.dumps(observations)
+                print(getsizeof(observations)/ float(1024) / float(1024))
+                requests.post(
+                    URL+"/proccess/", {"id": id, "observations": observations})
+                os.remove(REPLAY_ROUTE+str(id))
             subprocess.call(
-                ["sudo", "killall", "-9", "/home/rts/StarCraftII/Versions/Base55958/SC2_x64"])
+                ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
         except Exception as e:
+            time.sleep(5)
             print(e)
-    loop.close()
-
 
 if __name__ == "__main__":
-    main()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+    loop.close()
