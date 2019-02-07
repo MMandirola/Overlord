@@ -11,6 +11,8 @@ import os
 import subprocess
 import time
 from sys import getsizeof
+import traceback
+
 try:
     from local_settings import *
 except ImportError:
@@ -133,7 +135,7 @@ async def main():
                 async for obs in game.load_replay(REPLAY_ROUTE+str(id)):
                     observations.append(obs)
                     counter += 1
-                    if counter == 23:
+                    if counter == 12:
                         observations = json.dumps(observations)
                         requests.post(
                             URL+"/proccess/", {"id": id, "observations": observations})
@@ -151,6 +153,7 @@ async def main():
                 ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
         except Exception as e:
             time.sleep(5)
+            traceback.print_exc()
             print(e)
 
 if __name__ == "__main__":
