@@ -129,13 +129,24 @@ async def main():
                 base64_to_file(pay, REPLAY_ROUTE+str(id))
                 file_path = str(id)
                 observations = []
+                counter = 0
                 async for obs in game.load_replay(REPLAY_ROUTE+str(id)):
                     observations.append(obs)
+                    counter += 1
+                    if counter == 23:
+                        observations = json.dumps(observations)
+                        requests.post(
+                            URL+"/proccess/", {"id": id, "observations": observations})
+                        counter = 0
+                        observations = []
+
                 observations = json.dumps(observations)
-                print(getsizeof(observations)/ float(1024) / float(1024))
                 requests.post(
                     URL+"/proccess/", {"id": id, "observations": observations})
+                requests.post(
+                    URL+"/proccess/finish", {"id": id })               
                 os.remove(REPLAY_ROUTE+str(id))
+
             subprocess.call(
                 ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
         except Exception as e:
