@@ -4,6 +4,7 @@ import math
 import requests
 from time import gmtime, strftime, sleep
 from sc2_wrapper import client as game
+from sc2_wrapper.players import CBRAlgorithm
 import uuid
 import asyncio
 import json
@@ -12,6 +13,7 @@ import subprocess
 import time
 from sys import getsizeof
 import traceback
+import pkg_resources
 
 try:
     from local_settings import *
@@ -95,6 +97,7 @@ async def main():
 
 
     while True:
+        version = pkg_resources.get_distribution("SC2ApiWrapper").version
         try:
             r = requests.get(URL+"/mode")
             payload = r.json()
@@ -148,6 +151,28 @@ async def main():
                 requests.post(
                     URL+"/proccess/finish", {"id": id })               
                 os.remove(REPLAY_ROUTE+str(id))
+            if payload["fields"]["title"] == "PLAY":
+                difficulty = payload["fields"]["difficulty"]
+                observations = []
+                i = 0
+                while i < 80:
+                    print(i)
+                    r = requests.get(URL + "/sample/")
+                    if r.status_code == 200:
+                        observations += r.json()
+                        i += 1
+                    else:
+                        print("Error, retrying")
+                player1 = CBRAlgorithm()
+                await player1.create(
+                        "Terran", "Human",
+                        server_route=SERVER_ROUTE, server_address=SERVER_ADDRESS,
+                        cases=observations, rules=IDLE_RULES,
+                )
+                replay_name, result = await play_vs_ia(player1, {}, "InterloperLE.SC2Map", "Terran", difficulty, 24)
+                requests.post(
+                    URL+"/stats", {"version": version, "difficulty":difficulty, "name": replay_name, "result": result})
+                requests.post(URL+"/player_replay", {"title": replay_name, 'base64_file': base64_encoded_text})               
 
             subprocess.call(
                 ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
