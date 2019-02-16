@@ -14,6 +14,12 @@ import time
 from sys import getsizeof
 import traceback
 import pkg_resources
+import sys
+import os
+
+DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(DIR + "/sc2_wrapper")
+print(sys.path)
 
 try:
     from local_settings import *
