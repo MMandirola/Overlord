@@ -4,7 +4,7 @@ import math
 import requests
 from time import gmtime, strftime, sleep
 from sc2_wrapper import client as game
-from sc2_wrapper.players import CBRAlgorithm
+from sc2_wrapper.players.cbr_algorithm import CBRAlgorithm
 import uuid
 import asyncio
 import json
