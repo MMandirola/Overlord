@@ -122,10 +122,10 @@ async def main():
                 requests.post(
                     URL+"/classify/", {"id": id, "player": meta["races"][0], "opponent": meta["races"][1], "map": meta["map"]})
                 os.remove(REPLAY_ROUTE+str(id))
-            if payload["fields"]["title"] == "UPDATE":
+            elif payload["fields"]["title"] == "UPDATE":
                 subprocess.call(["git", "pull"])
                 subprocess.call(["pip3", "install", "-r", "requirements.txt", "--force-reinstall", "--no-cache-dir"])
-            if payload["fields"]["title"] == "PROCESS":
+            elif payload["fields"]["title"] == "PROCESS":
                 path = "/replays?"
                 if payload["fields"]["map"]:
                     path += "map=" + payload["fields"]["map"] + "&"
