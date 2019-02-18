@@ -177,14 +177,14 @@ async def main():
                         server_route=SERVER_ROUTE, server_address=SERVER_ADDRESS,
                         cases=observations, rules=[],
                 )
-                replay_name, result = await play_vs_ia(player1, {}, "InterloperLE.SC2Map", "Terran", difficulty, 24)
+                replay_name, result = await game.play_vs_ia(player1, {}, "InterloperLE.SC2Map", "Terran", difficulty, 24)
                 requests.post(
-                    URL+"/stats", {"version": version, "difficulty":difficulty, "name": replay_name, "result": result})
-                base64_replay = file_to_base64(REPLAY_ROUTE + replay_name)
-                requests.post(URL+"/player_replay", {"title": replay_name, 'base64_file': base64_replay})
-                os.remove(REPLAY_ROUTE+ replay_name)        
+                    URL+"/stats/", {"version": str(version), "difficulty":difficulty, "name": replay_name, "result": str(result)})
+                base64_replay = file_to_base64(replay_name)
+                requests.post(URL+"/player_replay/", {"title": replay_name, 'base64_file': base64_replay})
+                os.remove(replay_name)        
             elif payload["fields"]["title"] == "FEEDBACK":
-                path = "/feedback"
+                path = "/feedback/"
                 r = requests.get(URL+path)
                 payload = r.json()
                 id = payload["title"]
@@ -207,8 +207,8 @@ async def main():
                 requests.post(
                     URL+"/proccess_feedback/", {"id": id, "observations": observations})
                 requests.post(
-                    URL+"/proccess_feddback/finish", {"id": id })               
-                os.remove(REPLAY_ROUTE+str(id))
+                    URL+"/proccess_feddback/finish/", {"id": id })               
+                os.remove(REPLAY_ROUTE + str(id))
             subprocess.call(
                 ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
         except Exception as e:
