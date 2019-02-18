@@ -66,16 +66,7 @@ class Overlord:
                        (strftime("%Y-%m-%d %H:%M:%S", gmtime()), text))
         log_file.close()
 
-    # Return base64 encoded string
-    def file_to_base64(self, file_path):
 
-        # Open encoded file
-        replay_file = open(file_path, "rb")
-        file_content = replay_file.read()
-        replay_file.close()
-
-        # Encode file content and return it
-        return base64.b64encode(file_content)
 
     # Write decode base64 string to a file
 
@@ -92,7 +83,16 @@ def base64_to_file(base64_encoded_text, file_path):
     replay_file.close()
 
     return True
+# Return base64 encoded string
+def file_to_base64(file_path):
 
+    # Open encoded file
+    replay_file = open(file_path, "rb")
+    file_content = replay_file.read()
+    replay_file.close()
+
+    # Encode file content and return it
+    return base64.b64encode(file_content)
 
 async def main():
 
@@ -180,8 +180,35 @@ async def main():
                 replay_name, result = await play_vs_ia(player1, {}, "InterloperLE.SC2Map", "Terran", difficulty, 24)
                 requests.post(
                     URL+"/stats", {"version": version, "difficulty":difficulty, "name": replay_name, "result": result})
-                requests.post(URL+"/player_replay", {"title": replay_name, 'base64_file': base64_encoded_text})               
+                base64_replay = file_to_base64(REPLAY_ROUTE + replay_name)
+                requests.post(URL+"/player_replay", {"title": replay_name, 'base64_file': base64_replay})
+                os.remove(REPLAY_ROUTE+ replay_name)        
+            elif payload["fields"]["title"] == "FEEDBACK":
+                path = "/feedback"
+                r = requests.get(URL+path)
+                payload = r.json()
+                id = payload["title"]
+                pay = payload["base64"][2:]
+                base64_to_file(pay, REPLAY_ROUTE+str(id))
+                file_path = str(id)
+                observations = []
+                counter = 0
+                async for obs in game.load_replay(REPLAY_ROUTE+str(id)):
+                    observations.append(obs)
+                    counter += 1
+                    if counter == 12:
+                        observations = json.dumps(observations)
+                        requests.post(
+                            URL+"/proccess_feedback/", {"id": id, "observations": observations})
+                        counter = 0
+                        observations = []
 
+                observations = json.dumps(observations)
+                requests.post(
+                    URL+"/proccess_feedback/", {"id": id, "observations": observations})
+                requests.post(
+                    URL+"/proccess_feddback/finish", {"id": id })               
+                os.remove(REPLAY_ROUTE+str(id))
             subprocess.call(
                 ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
         except Exception as e:
