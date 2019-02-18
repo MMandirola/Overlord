@@ -175,7 +175,7 @@ async def main():
                 await player1.create(
                         "Terran", "Human",
                         server_route=SERVER_ROUTE, server_address=SERVER_ADDRESS,
-                        cases=observations, rules=IDLE_RULES,
+                        cases=observations, rules=[],
                 )
                 replay_name, result = await play_vs_ia(player1, {}, "InterloperLE.SC2Map", "Terran", difficulty, 24)
                 requests.post(
