@@ -187,8 +187,8 @@ async def main():
                 path = "/feedback/"
                 r = requests.get(URL+path)
                 payload = r.json()
-                id = payload["title"]
-                pay = payload["base64"][2:]
+                id = payload["title"][8:]
+                pay = payload["base64"]
                 base64_to_file(pay, REPLAY_ROUTE+str(id))
                 file_path = str(id)
                 observations = []
