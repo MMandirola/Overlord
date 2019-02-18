@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=rts
-WorkingDirectory=/home/rts/Overlord
-ExecStart=sudo python3 /home/rts/Overlord/client.py
+User=Overlord
+WorkingDirectory=/home/Overlord/Overlord
+ExecStart=python /home/Overlord/Overlord/client.py
 Restart=on-failure
 
 [Install]
