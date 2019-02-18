@@ -199,15 +199,15 @@ async def main():
                     if counter == 12:
                         observations = json.dumps(observations)
                         requests.post(
-                            URL+"/proccess_feedback/", {"id": id, "observations": observations})
+                            URL+"/proccess/", {"id": payload["title"], "observations": observations})
                         counter = 0
                         observations = []
 
                 observations = json.dumps(observations)
                 requests.post(
-                    URL+"/proccess_feedback/", {"id": id, "observations": observations})
+                    URL+"/proccess/", {"id": payload["title"], "observations": observations})
                 requests.post(
-                    URL+"/proccess_feddback/finish/", {"id": id })               
+                    URL+"/feedback/finish/", {"id": payload["title"] })               
                 os.remove(REPLAY_ROUTE + str(id))
             subprocess.call(
                 ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
