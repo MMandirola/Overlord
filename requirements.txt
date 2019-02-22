@@ -1,2 +1,2 @@
 requests
-git+git://github.com/dumb-bots/SC2BlizzardWrapper@develop
+git+git://github.com/dumb-bots/SC2BlizzardWrapper@2.0

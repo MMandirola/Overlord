@@ -94,6 +94,28 @@ def file_to_base64(file_path):
     # Encode file content and return it
     return base64.b64encode(file_content)
 
+
+def get_observations():
+    try:
+        f = open('backup_observations.json', "r")
+        data = json.loads(f.read())
+        f.close()
+        print("Got from backup file")
+        return data
+    except:
+        return get_overmind_data()
+
+
+def get_overmind_data():
+    r = requests.get(URL + "/static/observations.json")
+    data = r.json()
+    f = open('backup_observations.json', "w")
+    f.write(json.dumps(data))
+    f.close()
+    print("Got from overmind")
+    return data
+
+
 async def main():
 
     # Overlord client
@@ -161,16 +183,7 @@ async def main():
                 difficulty = payload["fields"]["difficulty_opponent"]
                 if not difficulty:
                     difficulty = "VeryEasy"
-                observations = []
-                i = 0
-                while i < 80:
-                    print(i)
-                    r = requests.get(URL + "/sample/")
-                    if r.status_code == 200:
-                        observations += r.json()
-                        i += 1
-                    else:
-                        print("Error, retrying")
+                observations = get_observations()
                 player1 = CBRAlgorithm()
                 await player1.create(
                         "Terran", "Human",
