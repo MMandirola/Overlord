@@ -17,7 +17,7 @@ import pkg_resources
 import sys
 import os
 
-from sc2_wrapper.players.rules import IDLE_RULES
+from sc2_wrapper.players.rules import IDLE_RULES, RulesPlayer, DEMO_RULES_ACTIONS_2, DEMO_RULES_2
 
 DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(DIR + "/sc2_wrapper")
@@ -97,25 +97,50 @@ def file_to_base64(file_path):
     return base64.b64encode(file_content)
 
 
-def get_observations():
+def get_observations(data_source):
     try:
-        f = open('backup_observations.json', "r")
+        f = open('{}.json'.format(data_source), "r")
         data = json.loads(f.read())
         f.close()
-        print("Got from backup file")
+        print("Got from backup file {}".format(data_source))
         return data
     except:
-        return get_overmind_data()
+        return get_overmind_data(data_source)
 
 
-def get_overmind_data():
-    r = requests.get(URL + "/static/observations.json")
+def get_overmind_data(data_source):
+    r = requests.get(URL + "/static/{}".format(data_source))
     data = r.json()
     f = open('backup_observations.json', "w")
     f.write(json.dumps(data))
     f.close()
-    print("Got from overmind")
+    print("Got from overmind {}".format(data_source))
     return data
+
+
+async def get_player(player, data_source):
+    if player == "RulesPlayer":
+        player1 = RulesPlayer()
+        player_args = {
+            "race": "Terran",
+            "obj_type": "Human",
+            "server_route": SERVER_ROUTE,
+            "server_address": SERVER_ADDRESS,
+            "actions": DEMO_RULES_ACTIONS_2,
+            "rules": DEMO_RULES_2,
+        }
+        return await player1.create(**player_args)
+
+    elif player == "CBRPlayer":
+        observations = get_observations(data_source)
+        player1 = CBRAlgorithm()
+        return await player1.create(
+            "Terran", "Human",
+            server_route=SERVER_ROUTE, server_address=SERVER_ADDRESS,
+            cases=observations, rules=IDLE_RULES,
+        )
+    else:
+        raise Exception("INVALID PLAYER {}".format(player))
 
 
 async def main():
@@ -185,17 +210,19 @@ async def main():
                 difficulty = payload["fields"]["difficulty_opponent"]
                 if not difficulty:
                     difficulty = "VeryEasy"
-                observations = get_observations()
-                player1 = CBRAlgorithm()
-                await player1.create(
-                        "Terran", "Human",
-                        server_route=SERVER_ROUTE, server_address=SERVER_ADDRESS,
-                        cases=observations, rules=IDLE_RULES,
-                )
+                bot_player = payload['fields'].get("player")
+                data_source = payload['fields'].get("data_source")
+                player1 = get_player(bot_player, data_source)
                 replay_name, result = await game.play_vs_ia(player1, {}, "InterloperLE.SC2Map", "Terran", difficulty, 24)
                 print("Sending data to overmind")
                 requests.post(
-                    URL+"/stats/", {"version": str(version), "difficulty":difficulty, "name": replay_name, "result": str(result)})
+                    URL+"/stats/", {
+                        "version": str(version),
+                        "difficulty":difficulty,
+                        "name": replay_name,
+                        "bot_player": bot_player,
+                        "data_source": data_source,
+                        "result": str(result)})
                 base64_replay = file_to_base64(replay_name)
                 requests.post(URL+"/player_replay/", {"title": replay_name, 'base64_file': base64_replay})
                 os.remove(replay_name)
@@ -226,8 +253,8 @@ async def main():
                     URL+"/feedback/finish/", {"id": payload["title"] })
                 os.remove(REPLAY_ROUTE + str(id))
             print("Cleanup")
-            subprocess.call(
-                ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
+            # subprocess.call(
+            #     ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
         except Exception as e:
             time.sleep(5)
             traceback.print_exc()
