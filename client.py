@@ -99,7 +99,7 @@ def file_to_base64(file_path):
 
 def get_observations(data_source):
     try:
-        f = open('{}.json'.format(data_source), "r")
+        f = open('{}'.format(data_source), "r")
         data = json.loads(f.read())
         f.close()
         print("Got from backup file {}".format(data_source))
@@ -111,7 +111,7 @@ def get_observations(data_source):
 def get_overmind_data(data_source):
     r = requests.get(URL + "/static/{}".format(data_source))
     data = r.json()
-    f = open('backup_observations.json', "w")
+    f = open('{}'.format(data_source), "w")
     f.write(json.dumps(data))
     f.close()
     print("Got from overmind {}".format(data_source))
