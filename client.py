@@ -129,18 +129,20 @@ async def get_player(player, data_source):
             "actions": DEMO_RULES_ACTIONS_2,
             "rules": DEMO_RULES_2,
         }
-        return await player1.create(**player_args)
+        await player1.create(**player_args)
 
     elif player == "CBRPlayer":
         observations = get_observations(data_source)
         player1 = CBRAlgorithm()
-        return await player1.create(
+        await player1.create(
             "Terran", "Human",
             server_route=SERVER_ROUTE, server_address=SERVER_ADDRESS,
             cases=observations, rules=IDLE_RULES,
         )
     else:
         raise Exception("INVALID PLAYER {}".format(player))
+
+    return player1
 
 
 async def main():
@@ -212,7 +214,7 @@ async def main():
                     difficulty = "VeryEasy"
                 bot_player = payload['fields'].get("player")
                 data_source = payload['fields'].get("data_source")
-                player1 = get_player(bot_player, data_source)
+                player1 = await get_player(bot_player, data_source)
                 replay_name, result = await game.play_vs_ia(player1, {}, "InterloperLE.SC2Map", "Terran", difficulty, 24)
                 print("Sending data to overmind")
                 requests.post(
