@@ -17,6 +17,8 @@ import pkg_resources
 import sys
 import os
 
+from sc2_wrapper.players.rules import IDLE_RULES
+
 DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(DIR + "/sc2_wrapper")
 print(sys.path)
@@ -177,7 +179,7 @@ async def main():
                 requests.post(
                     URL+"/proccess/", {"id": id, "observations": observations})
                 requests.post(
-                    URL+"/proccess/finish", {"id": id })               
+                    URL+"/proccess/finish", {"id": id })
                 os.remove(REPLAY_ROUTE+str(id))
             elif payload["fields"]["title"] == "PLAY":
                 difficulty = payload["fields"]["difficulty_opponent"]
@@ -188,14 +190,15 @@ async def main():
                 await player1.create(
                         "Terran", "Human",
                         server_route=SERVER_ROUTE, server_address=SERVER_ADDRESS,
-                        cases=observations, rules=[],
+                        cases=observations, rules=IDLE_RULES,
                 )
                 replay_name, result = await game.play_vs_ia(player1, {}, "InterloperLE.SC2Map", "Terran", difficulty, 24)
+                print("Sending data to overmind")
                 requests.post(
                     URL+"/stats/", {"version": str(version), "difficulty":difficulty, "name": replay_name, "result": str(result)})
                 base64_replay = file_to_base64(replay_name)
                 requests.post(URL+"/player_replay/", {"title": replay_name, 'base64_file': base64_replay})
-                os.remove(replay_name)        
+                os.remove(replay_name)
             elif payload["fields"]["title"] == "FEEDBACK":
                 path = "/feedback/"
                 r = requests.get(URL+path)
@@ -220,8 +223,9 @@ async def main():
                 requests.post(
                     URL+"/proccess/", {"id": payload["title"], "observations": observations})
                 requests.post(
-                    URL+"/feedback/finish/", {"id": payload["title"] })               
+                    URL+"/feedback/finish/", {"id": payload["title"] })
                 os.remove(REPLAY_ROUTE + str(id))
+            print("Cleanup")
             subprocess.call(
                 ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
         except Exception as e:
