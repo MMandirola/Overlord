@@ -119,7 +119,10 @@ def get_overmind_data(data_source):
 
 
 async def get_player(player, data_source):
-    if player == "RulesPlayer":
+    resolution = 24
+    if player in ["RulesPlayer", "RulesPlayer(100)"]:
+        if player == "RulesPlayer(100)":
+            resolution = 100
         player1 = RulesPlayer()
         player_args = {
             "race": "Terran",
@@ -130,7 +133,6 @@ async def get_player(player, data_source):
             "rules": DEMO_RULES_2,
         }
         await player1.create(**player_args)
-
     elif player == "CBRPlayer":
         observations = get_observations(data_source)
         player1 = CBRAlgorithm()
@@ -142,7 +144,7 @@ async def get_player(player, data_source):
     else:
         raise Exception("INVALID PLAYER {}".format(player))
 
-    return player1
+    return player1, resolution
 
 
 async def main():
@@ -214,8 +216,8 @@ async def main():
                     difficulty = "VeryEasy"
                 bot_player = payload['fields'].get("player")
                 data_source = payload['fields'].get("data_source")
-                player1 = await get_player(bot_player, data_source)
-                replay_name, result = await game.play_vs_ia(player1, {}, "InterloperLE.SC2Map", "Terran", difficulty, 24)
+                player1, time_resolution = await get_player(bot_player, data_source)
+                replay_name, result = await game.play_vs_ia(player1, {}, "InterloperLE.SC2Map", "Terran", difficulty, time_resolution)
                 print("Sending data to overmind")
                 requests.post(
                     URL+"/stats/", {
