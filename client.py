@@ -257,8 +257,8 @@ async def main():
                     URL+"/feedback/finish/", {"id": payload["title"] })
                 os.remove(REPLAY_ROUTE + str(id))
             print("Cleanup")
-            # subprocess.call(
-            #     ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
+            subprocess.call(
+                ["sudo", "killall", "-9", SERVER_ROUTE + "/Versions/Base55958/SC2_x64"])
         except Exception as e:
             time.sleep(5)
             traceback.print_exc()
